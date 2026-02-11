@@ -6,7 +6,6 @@ const popupClose = document.getElementById("popupClose");
 const modeButtons = document.querySelectorAll('.mode-btn');
 const currentModeText = document.getElementById('currentModeText');
 
-
 let lastValue = "";
 let isRedirecting = false;
 let currentMode = "hour";
@@ -14,7 +13,6 @@ let inputTimeout = null;
 
 
 const originalPasteBtnHTML = pasteBtn.innerHTML;
-
 
 const modeFilters = {
   hour: "EgIIAQ%3D%3D",
@@ -42,6 +40,7 @@ function setActiveMode(mode) {
   localStorage.setItem('preferredMode', mode);
 }
 
+
 function resetToInitialState() {
   searchBox.value = "";
   pasteBtn.innerHTML = originalPasteBtnHTML;
@@ -52,12 +51,34 @@ function resetToInitialState() {
   searchBox.focus();
 }
 
+function isYouTubeUrl(text) {
+  const youtubePatterns = [
+    /youtu\.be\/[a-zA-Z0-9_-]+/i,
+    /youtube\.com\/watch\?v=[a-zA-Z0-9_-]+/i,
+    /youtube\.com\/embed\/[a-zA-Z0-9_-]+/i,
+    /youtube\.com\/shorts\/[a-zA-Z0-9_-]+/i
+  ];
+  
+  return youtubePatterns.some(pattern => pattern.test(text));
+}
+
+function extractVideoId(url) {
+  
+  const youtuBeMatch = url.match(/youtu\.be\/([a-zA-Z0-9_-]+)/);
+  if (youtuBeMatch) return youtuBeMatch[1];
+  
+  
+  const youtubeMatch = url.match(/(?:v=|embed\/|shorts\/)([a-zA-Z0-9_-]+)/);
+  if (youtubeMatch) return youtubeMatch[1];
+  
+  return null;
+}
 
 function doSearch() {
   const value = searchBox.value.trim();
   if (!value || isRedirecting) return;
 
- 
+  
   const currentValue = value;
   
   
@@ -68,17 +89,31 @@ function doSearch() {
   isRedirecting = true;
   lastValue = currentValue;
 
- 
+  
   pasteBtn.innerHTML = '<i class="bi bi-search"></i> Searching...';
   pasteBtn.style.opacity = '0.9';
   pasteBtn.disabled = true;
 
- 
-  const query = encodeURIComponent(currentValue);
-  const filter = modeFilters[currentMode];
-  const url = filter 
-    ? `https://www.youtube.com/results?search_query=${query}&sp=${filter}`
-    : `https://www.youtube.com/results?search_query=${query}`;
+  
+  let url;
+  if (isYouTubeUrl(currentValue)) {
+    // It's a YouTube URL - redirect directly to mobile version
+    const videoId = extractVideoId(currentValue);
+    if (videoId) {
+     
+      url = `https://m.youtube.com/watch?v=${videoId}`;
+    } else {
+      
+      const query = encodeURIComponent(currentValue);
+      const filter = modeFilters[currentMode];
+      url = `https://m.youtube.com/results?search_query=${query}${filter ? `&sp=${filter}` : ''}`;
+    }
+  } else {
+    
+    const query = encodeURIComponent(currentValue);
+    const filter = modeFilters[currentMode];
+    url = `https://m.youtube.com/results?search_query=${query}${filter ? `&sp=${filter}` : ''}`;
+  }
 
   
   localStorage.setItem('lastSearch', currentValue);
@@ -87,17 +122,25 @@ function doSearch() {
   
   searchBox.value = "";
   
-  
+ 
   searchBox.dataset.allowResearch = 'true';
 
+  
   setTimeout(() => {
-    window.location.href = url;
+   
+    try {
+      window.location.href = url;
+    } catch (error) {
+      console.error("Redirect error:", error);
+      
+      window.open(url, '_blank');
+      resetToInitialState();
+    }
   }, 100);
 }
 
-
 function handleInput() {
-  
+ 
   if (searchBox.dataset.allowResearch) {
     delete searchBox.dataset.allowResearch;
   }
@@ -140,7 +183,7 @@ pasteBtn.addEventListener("click", async () => {
   try {
     const text = await navigator.clipboard.readText();
     if (text && text.trim()) {
-     
+      // Set value in input box
       searchBox.value = text.trim();
       
       
@@ -170,7 +213,7 @@ popupOverlay.addEventListener("click", (e) => {
   if (e.target === popupOverlay) popupOverlay.style.display = "none";
 });
 
-
+// Initialize
 document.addEventListener('DOMContentLoaded', () => {
   const savedMode = localStorage.getItem('preferredMode');
   if (savedMode && modeFilters[savedMode]) {
@@ -193,7 +236,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 document.addEventListener('visibilitychange', () => {
   if (!document.hidden) {
-    
+    // Page is visible again (user returned)
     resetToInitialState();
   }
 });
@@ -203,6 +246,7 @@ if ("serviceWorker" in navigator) {
     navigator.serviceWorker.register("sw.js").catch(console.error);
   });
 }
+
 
 document.addEventListener('keydown', (e) => {
   if ((e.ctrlKey || e.metaKey) && e.key === 'v' && document.activeElement !== searchBox) {
@@ -216,3 +260,12 @@ document.addEventListener('keydown', (e) => {
     else if (e.key === '3') setActiveMode('normal');
   }
 });
+
+
+function isMobileDevice() {
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+}
+
+if (isMobileDevice()) {
+  console.log("Mobile device detected - optimized for m.youtube.com");
+}
