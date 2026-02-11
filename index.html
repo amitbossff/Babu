@@ -1,141 +1,95 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>AmitTG</title>
-
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="description" content="Find latest YouTube videos uploaded in last 1 hour">
-<meta name="theme-color" content="#4f46e5">
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-
-<style>
-:root{
-  --bg:#f5f7fb;
-  --card:#ffffff;
-  --text:#111827;
-  --muted:#6b7280;
-  --primary:#4f46e5;
-  --border:#e5e7eb;
-}
-
-body{
-  background: linear-gradient(180deg,#eef2ff,#f8fafc);
-  color: var(--text);
-  font-family: "Inter", system-ui, sans-serif;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.app{
-  background: var(--card);
-  border-radius: 20px;
-  padding: 30px;
-  max-width: 420px;
-  width: 100%;
-  box-shadow: 0 20px 40px rgba(0,0,0,.08);
-  border:1px solid var(--border);
-}
-
-.logo{
-  font-size:34px;
-  margin-bottom:6px;
-}
-
-h1{
-  font-size:24px;
-  font-weight:600;
-}
-
-p{
-  font-size:14px;
-  color:var(--muted);
-}
-
-input{
-  background:#f9fafb !important;
-  color:var(--text) !important;
-  border:1px solid var(--border) !important;
-  border-radius:14px !important;
-  padding:14px !important;
-}
-
-input::placeholder{
-  color:#9ca3af;
-}
-
-.btn-main{
-  background: linear-gradient(135deg,#6366f1,#4f46e5);
-  border:none;
-  border-radius:14px;
-  padding:14px;
-  font-weight:500;
-  color:#fff;
-}
-
-.btn-main:hover{
-  opacity:.95;
-}
-
-.small-btn{
-  background:#f9fafb;
-  border:1px solid var(--border);
-  color:#374151;
-  border-radius:12px;
-}
-
-.small-btn:hover{
-  background:#eef2ff;
-}
-
-.footer{
-  margin-top:22px;
-  font-size:13px;
-  color:#9ca3af;
-}
-</style>
+  <meta charset="UTF-8" />
+  <title>VideoSearch Pro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#0a0a1a">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+  <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
-
-<div class="app text-center">
-  <div class="logo"></div>
-  <h1>AmitTG</h1>
-  <p>Search YouTube videos from last 1 hour</p>
-
-  <div class="mt-4">
-    <input type="text" id="query" class="form-control mb-3" placeholder="Enter keyword…">
-    <button class="btn btn-main w-100" onclick="searchYT()">Search</button>
-    <button class="btn small-btn w-100 mt-2" onclick="clearInput()">Clear</button>
+  
+  <div class="bg-elements">
+    <div></div>
+    <div></div>
+    <div></div>
+    <div></div>
   </div>
 
-  <div class="footer">
-    Made with ❤️ by AmitTG
+  <div class="container">
+    <div class="card-ui">
+      <div class="header">
+        <div class="brand-name">
+          <i class="bi bi-youtube"></i>
+         Radhe Radhe 
+        </div>
+      </div>
+
+      <div class="search-box">
+        <span class="search-icon">
+          <i class="bi bi-link-45deg"></i>
+        </span>
+        <input
+          type="text"
+          id="searchBox"
+          placeholder="Paste here..."
+          autocomplete="off"
+        >
+      </div>
+
+      <button class="btn-search" id="pasteBtn">
+        <i class="bi bi-clipboard"></i>
+        Paste Directly 
+      </button>
+
+      <div class="mode-selector">
+        <button class="mode-btn active" data-mode="hour">
+          <i class="bi bi-clock"></i>
+          Last Hour
+        </button>
+        <button class="mode-btn" data-mode="today">
+          <i class="bi bi-calendar-day"></i>
+          Today
+        </button>
+        <button class="mode-btn" data-mode="normal">
+          <i class="bi bi-globe"></i>
+          Normal
+        </button>
+      </div>
+
+      <div class="status-indicator">
+        <span class="status-dot"></span>
+        <span id="currentModeText">Searching: Last Hour Videos</span>
+      </div>
+
+      <div class="footer-text">
+        Regards • Video Trade 
+      </div>
+    </div>
   </div>
-</div>
 
-<script>
-function searchYT(){
-  const q=document.getElementById("query").value.trim();
-  if(!q){
-    alert("Please enter keyword");
-    return;
-  }
-  window.location.href=
-    "https://www.youtube.com/results?search_query="
-    +encodeURIComponent(q)
-    +"&sp=EgIIAQ%3D%3D";
-}
+  <div class="popup-overlay" id="popupOverlay">
+    <div class="popup-box">
+      <button class="popup-close" id="popupClose">✕</button>
+      <h3>
+        <i class="bi bi-exclamation-triangle"></i> Clipboard Access Required
+      </h3>
+      <p>
+        Paste feature not supported in this browser<br><br>
+        For clipboard access:<br>
+        1. Use Chrome, Edge, or Safari<br>
+        2. Add this site to home screen<br>
+        3. Install our app<br><br>
+        <small style="color: var(--secondary); font-weight: 500;">
+          You can still type manually in the search box.
+        </small>
+      </p>
+    </div>
+  </div>
 
-function clearInput(){
-  const i=document.getElementById("query");
-  i.value="";
-  i.focus();
-}
-</script>
-
+  <script src="script.js"></script>
 </body>
-  </html>
+</html>
